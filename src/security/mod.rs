@@ -2,9 +2,11 @@ use serde::{Deserialize, Serialize};
 use jsonwebtoken::{EncodingKey, DecodingKey};
 mod service;
 mod middleware;
-
-
-#[derive(Debug, Serialize, Deserialize)]
+mod handlers;
+pub use service::AuthService;
+pub use handlers::{login_handler, register_handler, me_handler};
+pub use middleware::require_jwt;
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claim{
     pub sub: String,
     pub exp: usize,

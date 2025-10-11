@@ -1,31 +1,30 @@
+use thiserror::Error;
+use sea_orm::DbErr;
+use axum::{response::IntoResponse, http::{StatusCode}};
 
-
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum AuthError {
+    #[error("database error")]
     DataBaseError,
+    #[error("user already exist")]
     UserAlreadyExist,
+    #[error("invalid creds")]
     InvalidCredentials,
+    #[error("hashing error")]
     HashingError,
+    #[error("invalid access token")]
     InvalidToken,
+    #[error("token creation error")]
     TokenCreationError,
+    #[error("invalid referal code")]
     InvalidRefCode,
     
     
 }
-
-impl std::fmt::Display for AuthError{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result{
-        match self{
-            Self::DataBaseError => write!(f, "DataBase Error"),
-            Self::UserAlreadyExist => write!(f, "User Already Exists"),
-            Self::InvalidCredentials => write!(f, "Wrong Username Or Password"),
-            Self::HashingError => write!(f, "Hashing Error..."),
-            Self::InvalidToken => write!(f, "Invalid Auth Token"),
-            Self::TokenCreationError => write!(f, "Failed To Create Token..."),
-            Self::InvalidRefCode => write!(f, "Invalid referer code"),
-        }
+impl From<DbErr> for AuthError {
+    fn from(_: DbErr) -> Self {
+        AuthError::DataBaseError
     }
 }
 
 
-impl std::error::Error for AuthError{}
