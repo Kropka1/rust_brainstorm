@@ -1,6 +1,5 @@
 use axum::{extract::{State, Request}, http::{StatusCode}, middleware::Next, response::Response};
 use jsonwebtoken::{Algorithm, Validation, decode};
-use std::sync::Arc;
 use crate::security::{AuthKeys, Claim};
 
 
@@ -20,7 +19,7 @@ pub async fn require_jwt(
     validation.validate_exp = true;
     let data = decode::<Claim>(token, &keys.decoding, &validation)
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
-    req.extensions_mut().insert(Arc::new(data.claims));
+    req.extensions_mut().insert::<Claim>(data.claims);
     Ok(next.run(req).await)
 }
 

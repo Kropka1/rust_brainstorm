@@ -8,7 +8,7 @@ pub use handlers::{login_handler, register_handler, me_handler};
 pub use middleware::require_jwt;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claim{
-    pub sub: String,
+    pub sub: i64,
     pub exp: usize,
     pub iat: usize,
     pub username: String,

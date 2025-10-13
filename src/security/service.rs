@@ -38,7 +38,7 @@ impl AuthService{
                 Ok(user_id)
             
             }
-            None => Err(AuthError::InvalidRefCode),
+        None => Err(AuthError::InvalidRefCode),
         }
     }
     
@@ -68,7 +68,7 @@ impl AuthService{
         Ok(
             AuthResponse {
                 token: (token),
-                user: UserResponse { id: (user_model.id.to_string()), username: (user_model.username.clone().unwrap()) },
+                user: UserResponse { id: (user_model.id.to_string()), username: (user_model.username.clone()) },
         }
         )
        
@@ -90,13 +90,13 @@ impl AuthService{
         let pass_hash = hash(&register_request.password, DEFAULT_COST)
             .map_err(|_| AuthError::HashingError)?;
         let user_active = user::ActiveModel{
-            created_at: Set(Some((SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()) as i32)),
-            updated_at: Set(Some((SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()) as i32)),
+            created_at: Set(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i32),
+            updated_at: Set(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i32),
             hashed_password: Set(pass_hash),
-            username: Set(Some(register_request.username.to_owned())),
+            username: Set(register_request.username.to_owned()),
             logo: Set("default.png".to_string()),
             role: Set("user".to_string()),
-            referer: Set(Some(referer)),
+            referer: Set(referer),
             ..Default::default()
             
         };
@@ -104,7 +104,7 @@ impl AuthService{
         
         let token = self.generate_token(&user_model)?;
         Ok(
-            AuthResponse { token: (token), user: UserResponse { id: (user_model.id.unwrap().to_string()), username: (user_model.username.unwrap().clone().unwrap()) } }
+            AuthResponse { token: (token), user: UserResponse { id: (user_model.id.unwrap().to_string()), username: (user_model.username.clone().unwrap()) } }
         )
 
     }
@@ -112,10 +112,10 @@ impl AuthService{
         let now = Utc::now();
         let expires_at = now + Duration::hours(24);
         let claim = Claim{
-            sub: user_model.id.clone().take().unwrap().to_string(),
+            sub: user_model.id.clone().take().unwrap(),
             exp: expires_at.timestamp() as usize,
             iat: now.timestamp() as usize,
-            username: user_model.username.clone().take().unwrap().expect("NO USERNAME")
+            username: user_model.username.clone().take().unwrap(),
         };
         encode(&Header::default(), &claim, &self.auth_keys.encoding)
             .map_err(|_| AuthError::TokenCreationError)

@@ -7,13 +7,13 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "user")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
-    pub created_at: Option<i32>,
-    pub updated_at: Option<i32>,
+    pub id: i64,
+    pub created_at: i32,
+    pub updated_at: i32,
     #[sea_orm(column_type = "Text", nullable)]
-    pub username: Option<String>,
+    pub username: String,
     pub role: String,
-    pub referer: Option<i64>,
+    pub referer: i64,
     #[sea_orm(column_type = "Text")]
     pub logo: String,
     #[serde(skip_serializing)]
