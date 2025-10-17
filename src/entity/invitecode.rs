@@ -12,7 +12,7 @@ pub struct Model {
     pub user_id: i64,
     #[sea_orm(column_type = "Text")]
     pub code: String,
-    pub is_used: i32,
+    pub is_used: i8,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

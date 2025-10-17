@@ -116,6 +116,7 @@ impl AuthService{
             exp: expires_at.timestamp() as usize,
             iat: now.timestamp() as usize,
             username: user_model.username.clone().take().unwrap(),
+            is_admin: 0,
         };
         encode(&Header::default(), &claim, &self.auth_keys.encoding)
             .map_err(|_| AuthError::TokenCreationError)

@@ -1,5 +1,5 @@
-use crate::{entity::friends::ActiveModel, errors::friends::FriendError, repository::FriendRepository};
-use sea_orm::DeleteResult;
+use crate::{entity::friends::{ActiveModel, Status}, errors::{friends::FriendError}, repository::FriendRepository};
+
 
 #[derive(Clone)]
 pub struct FriendService{
@@ -15,25 +15,21 @@ impl FriendService{
     }
 
     pub async fn send_friend_request(self, request_id: i64, reciever_id: i64) -> Result<ActiveModel, FriendError>{
-        match self.repository.new_record(request_id, reciever_id).await{
-            Ok(fr) => Ok(fr),
-            Err(err) => Err(err) 
-        }
+        Ok(
+            self.repository.new_record(request_id, reciever_id).await?
+        )
     }
     
     pub async fn approve_friend_request(self, request_id: i64, reciever_id: i64) -> Result<ActiveModel, FriendError>{
-        match self.repository.change_status(request_id, reciever_id, "approved".to_string()).await{
-            Ok(ft) => Ok(ft),
-            Err(err) => Err(err)
-        }
-
+        Ok(
+            self.repository.change_status(reciever_id, request_id, Status::Accepted.to_string()).await?
+        )
     }
 
-    pub async fn delete_friend_request(self, request_id: i64, reciever_id: i64) -> Result<DeleteResult, FriendError>{
-        match self.repository.delete_record(request_id, reciever_id).await{
-            Ok(ft) => Ok(ft),
-            Err(err) => Err(err)
-        }
+    pub async fn delete_friend_request(self, request_id: i64, reciever_id: i64) -> Result<(), FriendError>{
+        Ok(
+            self.repository.delete_record(request_id, reciever_id).await?
+        )
     }
 
 }

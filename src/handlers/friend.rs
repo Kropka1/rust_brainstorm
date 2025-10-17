@@ -1,4 +1,4 @@
-use sea_orm::DeleteResult;
+
 use serde::{Deserialize, Serialize};
 use axum::{extract::Extension, http::StatusCode, Json};
 use crate::security::{Claim};
@@ -64,11 +64,11 @@ pub async fn delete_friend_request_handler(
     Extension(service): Extension<Arc<FriendService>>,
     Extension(claim): Extension<Claim>,
     Json(payload): Json<FriendRequest>,
-) -> (StatusCode, Result<Json<u64>, FriendError>){
+) -> (StatusCode, Result<(), FriendError>){
     match <FriendService as Clone>::clone(&service).delete_friend_request(claim.sub, payload.reciever_id).await{
-        Ok(resp) => {(
+        Ok(_) => {(
                 StatusCode::OK,
-                Ok(axum::Json(resp.rows_affected))
+                Ok(())
         )
         },
         Err(err) => (StatusCode::BAD_REQUEST, Err(err)),

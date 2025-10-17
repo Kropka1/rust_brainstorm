@@ -3,17 +3,17 @@ use axum::response::{IntoResponse, Response};
 use crate::errors::infra::InfraError;
 
 #[derive(Debug, Error)]
-pub enum FriendError {
-    #[error("no request exist")]
-    NoFriendRequest,
+pub enum GameScoreError {
+    #[error("no gamescore exist")]
+    NotExist,
     #[error(transparent)]
     Infra(#[from]InfraError),
 }
-impl IntoResponse for FriendError {
+impl IntoResponse for GameScoreError {
     fn into_response(self) -> Response {
         let body = match self {
-            FriendError::NoFriendRequest => "request does not exist",
-            FriendError::Infra(_) => "database error", 
+            GameScoreError::NotExist=> "game score does not exist",
+            GameScoreError::Infra(_) => "database error", 
 
         };
 

@@ -14,6 +14,12 @@ pub struct Model {
     pub status: String,
 }
 
+#[derive(strum_macros::Display)]
+pub enum Status{
+    Pending,
+    Accepted,
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 
