@@ -1,6 +1,6 @@
 use sea_orm::{DatabaseConnection, IntoActiveModel};
 use crate::entity::friends::{Status, ActiveModel, Model, self};
-use sea_orm::{Set, EntityTrait, ActiveModelTrait, QueryFilter, ColumnTrait, DeleteResult};
+use sea_orm::{Set, EntityTrait, ActiveModelTrait, QueryFilter, ColumnTrait};
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::errors::infra::InfraError;
 

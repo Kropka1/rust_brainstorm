@@ -12,14 +12,21 @@ mod config;
 mod repository;
 mod service;
 mod handlers;
+use tower_http::{services::ServeDir};
+use tower_http::limit::RequestBodyLimitLayer;
 use crate::security::AuthService;
 use crate::security::{me_handler, register_handler, login_handler};
 use crate::security::{require_jwt, require_admin_jwt};
 use crate::handlers::invitecode::{create_code_handler, reload_code_handler};
 use crate::handlers::gamescore::{create_score_handler, update_score_handler, get_user_scores_handler, get_all_scores_handler};
 use crate::handlers::friend::{request_friend_handler, delete_friend_request_handler, approve_friend_request_handler};
-use crate::repository::{FriendRepository, InviteCodeRepository, GameScoreRepository};
-use crate::service::{FriendService, InviteCodeService, GameScoreService};
+use crate::handlers::user::{get_user_handler,
+change_role_handler,
+change_username_handler,
+change_logo_handler,
+}; 
+use crate::repository::{FriendRepository, UserRepository, InviteCodeRepository, GameScoreRepository};
+use crate::service::{FriendService, InviteCodeService, GameScoreService, UserService};
 
 
 async fn ping() -> &'static str{
@@ -43,6 +50,8 @@ async fn main() {
     let invitecode_service = Arc::new(InviteCodeService::new(invitecode_repository));
     let gamescore_repository = GameScoreRepository::new(db.clone());
     let gamescore_service = Arc::new(GameScoreService::new(gamescore_repository));
+    let user_repository = UserRepository::new(db.clone());
+    let user_service = Arc::new(UserService::new(user_repository));
 
     let auth_router = Router::new()
         .route("/register", post(register_handler))
@@ -53,6 +62,23 @@ async fn main() {
         .route("/me", get(me_handler))
         .route_layer(from_fn_with_state(keys.clone(), require_jwt));
 
+    let user_router = Router::new()
+        .route("/get", get(get_user_handler))
+        .route("/patch_username", patch(change_username_handler))
+        .route("/patch_logo", patch(change_logo_handler))
+        .layer(axum::Extension(user_service.clone()))
+        .layer(RequestBodyLimitLayer::new(8 * 1024 * 1024))
+        .route_layer(from_fn_with_state(keys.clone(), require_jwt));
+
+    let admin_router = Router::new()
+        .route("patch_role", patch(change_role_handler))
+        .layer(axum::Extension(user_service.clone()))
+        .route_layer(from_fn_with_state(keys.clone(), require_admin_jwt));
+    
+    
+    let files = Router::new().nest_service("/images", ServeDir::new("./uploads"));
+
+        
     let invitecode_router = Router::new()
         .route("/new", post(create_code_handler))
         .route("/reload", post(reload_code_handler))
@@ -82,7 +108,10 @@ async fn main() {
         .nest("/friend", friend_router)
         .nest("/invitecode", invitecode_router)
         .nest("/gamescore", gamescore_router)
+        .nest("/user", user_router)
+        .nest("/admin", admin_router)
         .with_state(keys.clone())
+        .merge(files)
         .layer(TraceLayer::new_for_http());
     let port = env.port;
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();

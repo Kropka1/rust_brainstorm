@@ -20,6 +20,13 @@ pub struct Model {
     pub hashed_password: String,
 }
 
+#[derive(strum_macros::Display)]
+#[derive(Deserialize, Serialize, Debug)]
+pub enum Role{
+    User,
+    Admin,
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 
