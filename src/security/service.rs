@@ -8,7 +8,7 @@ use crate::errors::auth::AuthError;
 use super::{Claim, AuthKeys, AuthResponse, LoginRequest, RegisterRequest, UserResponse};
 use chrono::{Utc, Duration};
 
-
+#[derive(Clone)]
 pub struct AuthService{
     pub db: DatabaseConnection,
     pub auth_keys: AuthKeys,
@@ -72,6 +72,41 @@ impl AuthService{
         }
         )
        
+    }
+
+    pub async fn create_super_admin(
+        &self,
+        username: String,
+        password: String,
+    ) -> Result<(), AuthError>{
+        let existing_user = user::Entity::find()
+            .filter(user::Column::Username.eq(username.clone()))
+            .one(&self.db)
+            .await
+            .map_err(|_| AuthError::DataBaseError)?;
+        if existing_user.is_some(){
+            return Err(AuthError::UserAlreadyExist);
+        }
+
+        let pass_hash = hash(&password, DEFAULT_COST)
+            .map_err(|_| AuthError::HashingError)?;
+
+        let admin = user::ActiveModel{
+            created_at: Set(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i32),
+            updated_at: Set(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i32),
+            hashed_password: Set(pass_hash),
+            username: Set(username),
+            logo: Set("default.png".to_string()),
+            role: Set("admin".to_string()),
+            referer: Set(12345),
+            ..Default::default()
+            
+        };
+        let _ = user::Entity::insert(admin).exec(&self.db).await?;
+
+        Ok(())
+
+
     }
 
     pub async fn register(

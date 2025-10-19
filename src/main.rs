@@ -25,12 +25,22 @@ change_role_handler,
 change_username_handler,
 change_logo_handler,
 }; 
+use crate::errors::auth::AuthError;
 use crate::repository::{FriendRepository, UserRepository, InviteCodeRepository, GameScoreRepository};
 use crate::service::{FriendService, InviteCodeService, GameScoreService, UserService};
 
 
 async fn ping() -> &'static str{
     "pong"
+}
+
+
+async fn create_default_admin(
+    auth: Arc<AuthService>,
+    username: &str,
+    password: &str,
+) -> Result<(), AuthError> {
+    auth.create_super_admin(username.to_string(), password.to_string()).await
 }
 
 
@@ -52,6 +62,14 @@ async fn main() {
     let gamescore_service = Arc::new(GameScoreService::new(gamescore_repository));
     let user_repository = UserRepository::new(db.clone());
     let user_service = Arc::new(UserService::new(user_repository));
+
+    if let Err(e) = create_default_admin(
+        auth_service.clone(),
+        &env.default_admin_username,
+        &env.default_admin_password,
+    ).await {
+        tracing::warn!("default admin init failed (maybe exists already): {e:?}");
+    }
 
     let auth_router = Router::new()
         .route("/register", post(register_handler))

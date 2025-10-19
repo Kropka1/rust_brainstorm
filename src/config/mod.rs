@@ -5,6 +5,8 @@ pub struct EnvironmentVariables {
     pub database_url: Cow<'static, str>,
     pub port: u16,
     pub secret: Cow<'static, str>,
+    pub default_admin_username: Cow<'static, str>,
+    pub default_admin_password: Cow<'static, str>,
 }
 
 impl EnvironmentVariables {
@@ -24,6 +26,16 @@ impl EnvironmentVariables {
                 Ok(secret) => secret.into(),
                 Err(err) => panic!("missing SECRET: {err}"),
             },
+            default_admin_username: match dotenv::var("DEFAULT_ADMIN_USERNAME") {
+                Ok(default_admin_username) => default_admin_username.into(),
+                Err(err) => panic!("missing default admin username: {err}"),
+            },
+            default_admin_password: match dotenv::var("DEFAULT_ADMIN_PASSWORD") {
+                Ok(default_admin_password) => default_admin_password.into(),
+                Err(err) => panic!("missing default admin password: {err}"),
+            },
+
+
         })
     }
 }
