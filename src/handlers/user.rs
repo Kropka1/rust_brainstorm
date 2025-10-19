@@ -37,37 +37,6 @@ pub struct UserResponse{
     registration_date: i32,
 }
 
-
-
-
-pub async fn get_image(
-    Path(file): Path<String>,
-) -> Result<(HeaderMap, Vec<u8>), (StatusCode, String)> {
-    if file.contains('/') || file.contains('\\') || file.contains("..") {
-        return Err((StatusCode::BAD_REQUEST, "invalid file path".into()));
-    }
-
-    let mut path = PathBuf::from("./uploads");
-    path.push(&file);
-
-    let bytes = tokio::fs::read(&path)
-        .await
-        .map_err(|e| match e.kind() {
-            std::io::ErrorKind::NotFound => (StatusCode::NOT_FOUND, "not found".into()),
-            _ => (StatusCode::INTERNAL_SERVER_ERROR, "internal error".into()),
-        })?;
-
-    let mime = infer::get(&bytes)
-        .map(|k| k.mime_type())
-        .unwrap_or("application/octet-stream");
-
-    let mut headers = HeaderMap::new();
-    headers.insert(header::CONTENT_TYPE, mime.parse().unwrap());
-
-    Ok((headers, bytes))
-}
-
-
 pub async fn get_user_handler(
     Extension(service): Extension<Arc<UserService>>,
     Extension(_claim): Extension<Claim>,

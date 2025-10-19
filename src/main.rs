@@ -71,7 +71,7 @@ async fn main() {
         .route_layer(from_fn_with_state(keys.clone(), require_jwt));
 
     let admin_router = Router::new()
-        .route("patch_role", patch(change_role_handler))
+        .route("/patch_role", patch(change_role_handler))
         .layer(axum::Extension(user_service.clone()))
         .route_layer(from_fn_with_state(keys.clone(), require_admin_jwt));
     
